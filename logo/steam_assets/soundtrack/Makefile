@@ -7,6 +7,6 @@ $(OUTDIR):
 	mkdir -p $@
 
 $(OUTDIR)/%.png: %.xcf | $(OUTDIR)
-	$(TOOLSDIR)/gimp_export.sh -f "$<" -o "$@"
+	$(TOOLSDIR)/gimp_xcf_export.sh -f "$<" -o "$@"
 
 .PHONY: all

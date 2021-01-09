@@ -8,7 +8,7 @@ all: $(OUTPUTS)
 
 $(OUTDIR)/%.png: %.xcf
 	@mkdir -p "$(dir $@)"
-	$(TOOLSDIR)/gimp_export.sh -f "$<" -o "$@"
+	$(TOOLSDIR)/gimp_xcf_export.sh -f "$<" -o "$@"
 	convert -crop 1680x1260+120+180 +repage "$@" "$@"
 	composite "$@" background.png "$@"
 	convert -scale "$(RES)" -sharpen 0.25x0 "$@" "$@" 
