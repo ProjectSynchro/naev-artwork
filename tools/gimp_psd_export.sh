@@ -4,6 +4,8 @@
 # Renders psd project to a png
 # Pass in -f <psdFile> -o <outputDir> 
 
+# It works, but seems to not be quite right on some images.
+
 set -e
 
 while getopts d:f:o: OPTION "$@"; do
