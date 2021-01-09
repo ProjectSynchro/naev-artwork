@@ -1,5 +1,5 @@
 TOOLSDIR := ../../../tools
-OUTDIR := ../../../out/steam
+OUTDIR := ../../../out/logo/steam_assets/library
 OUTPUTS := $(patsubst %.xcf,$(OUTDIR)/%.png,$(wildcard *.xcf))
 
 all: library capsule

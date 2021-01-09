@@ -1,6 +1,6 @@
 all: store soundtrack library
 
-restore:
+store:
 	$(MAKE) -C store
 
 soundtrack:

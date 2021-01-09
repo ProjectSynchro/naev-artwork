@@ -1,5 +1,5 @@
 TOOLSDIR := ../../../../tools
-OUTDIR := ../../../../out/steam
+OUTDIR := ../../../../out/logo/steam_assets/library/capsule
 OUTPUTS := $(patsubst %.mlt,$(OUTDIR)/%.png,$(wildcard *.mlt))
 
 all: $(OUTPUTS)
