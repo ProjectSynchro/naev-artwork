@@ -1,4 +1,5 @@
-OUTDIR := ../../out/steam
+TOOLSDIR := ../../../tools
+OUTDIR := ../../../out/steam
 OUTPUTS := $(patsubst %.xcf,$(OUTDIR)/%.png,$(wildcard *.xcf))
 
 all: library capsule
@@ -8,7 +9,7 @@ $(OUTDIR):
 	mkdir -p $@
 
 $(OUTDIR)/%.png: %.xcf | $(OUTDIR)
-	../gimp_export.sh -f "$<" -o "$@"
+	$(TOOLSDIR)/gimp_export.sh -f "$<" -o "$@"
 
 capsule:
 	$(MAKE) -C capsule
