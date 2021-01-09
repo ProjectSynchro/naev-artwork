@@ -9,4 +9,7 @@ logo:
 exterior:
 	$(MAKE) -C planet/exterior
 
-.PHONY: portraits logo exterior
+space:
+	$(MAKE) -C planet/space
+
+.PHONY: portraits logo exterior space
