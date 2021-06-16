@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
 
-cd "$(dirname $0)"
-RENDER="../render.py"
-RENDER_DIM="../dim.sh"
-MKSPR="$(./naevpath.sh)/utils/mkspr/mkspr"
-SHIPPATH=".."
-STATIONPATH="../../stations"
+#set -x
+
+BASEPATH=`pwd`
+RENDER="${BASEPATH}/render.py"
+RENDER_DIM="${BASEPATH}/dim.sh"
+MKSPR="${BASEPATH}/mkspr"
+RENDEROUT="${BASEPATH}/raw"
+SHIPPATH="${BASEPATH}/ships"
+STATIONPATH="${BASEPATH}/stations"
 BEGIN=$(date +%s)
 BLENDER="blender -b"
 # allow for custom path for blender as return by optional blenderpath.sh script
-[[ -f "blenderpath.sh" ]] && BLENDER="$(./blenderpath.sh)blender -b"
+#[[ -f "blenderpath.sh" ]] && BLENDER="$(./blenderpath.sh)blender -b"
 export PYTHONPATH="$PWD"
 
 # Create output directory if needed
-test -d "raw" || mkdir "raw"
+test -d "$RENDEROUT" || mkdir "$RENDEROUT"
 
 usage()
 {
@@ -47,7 +50,7 @@ debuglevel()
       printf '\n'
       $@
    else
-      $@ &>/dev/null
+      $@ &> /dev/null
    fi
 }
 
@@ -99,30 +102,37 @@ enginestate()
 
 render()
 {
-   BLEND="$1"
    RENDERPATH=$SHIPPATH
-   if ! $RENDER_DIM s $BLEND > /dev/null; then
-      echo -e "\E[31m$BLEND not found."; tput sgr0
+   BLENDPATH="$BASEPATH/$1"
+   BLENDFILE=`basename $BLENDPATH`
+   BLENDNAME=${BLENDFILE%.blend}
+   if ! $RENDER_DIM w $BLENDNAME > /dev/null; then
+      #echo -e "\E[31m$BLEND not found."; tput sgr0
+      echo "$BLENDNAME not found."
       return
    fi
 
    # Check what to run.
    if [ "$STATION" == "true" ]; then
-      INTENSITY=`$RENDER_DIM i $BLEND`
+      INTENSITY=`$RENDER_DIM i $BLENDNAME`
       REND_SCRIPT="$RENDER"
       SPRITES=
-      REND_PARAMS="--spritex 1 --intensity $INTENSITY"
+      REND_PARAMS="--spritex 1 --intensity $INTENSITY --resolution 2048"
    elif [ "$2" = "comm" ]; then
-      INTENSITY=`$RENDER_DIM i $BLEND`
+      INTENSITY=`$RENDER_DIM i $BLENDNAME`
       rotz=-135
       REND_SCRIPT="$RENDER"
-      REND_PARAMS="--spritex 1 --intensity $INTENSITY --comm 1"
+      REND_PARAMS="--spritex 1 --intensity $INTENSITY --comm 1 --resolution 2048"
    else
-      SPRITES=`$RENDER_DIM s $BLEND`
-      STATION=`$RENDER_DIM S $BLEND`
-      INTENSITY=`$RENDER_DIM i $BLEND`
+      SPRITES=`$RENDER_DIM s $BLENDNAME`
+      STATION=`$RENDER_DIM S $BLENDNAME`
+      INTENSITY=`$RENDER_DIM i $BLENDNAME`
+      SIZE=`$RENDER_DIM w $BLENDNAME`
       REND_SCRIPT="$RENDER"
-      REND_PARAMS="--spritex $SPRITES --intensity $INTENSITY"
+      REND_PARAMS="--spritex $SPRITES --intensity $INTENSITY --resolution $(expr $SIZE \* 4)"
+      if [ "$2" = "engine" ]; then
+         REND_PARAMS="$REND_PARAMS --engine true"
+      fi
       unset rotz;
    fi
 
@@ -132,8 +142,9 @@ render()
       REND_PARAMS="--spritex 1 --intensity $INTENSITY"
    fi
 
-   if [[ ! -e "$BLEND" ]] && [ "$STATION" != "true" ] || [[ ! -e "../stations/$BLEND" ]] &&  [[ "$STATION" == "true" ]]; then
-      echo -e "\E[31m$BLEND not found."; tput sgr0
+   if [[ ! -e "$BLENDFILE" ]] && [ "$STATION" != "true" ] || [[ ! -e "../stations/$BLENDFILE" ]] &&  [[ "$STATION" == "true" ]]; then
+      #echo -e "\E[31m$BLEND not found."; tput sgr0
+      echo "$BLENDFILE not found."
       return
    fi
 
@@ -146,65 +157,84 @@ render()
 
    # Render
    test -d ".render" || mkdir ".render"
-   cd .render
+   pushd .render >> /dev/null
    if [ -z "$COUNT" ]; then
       COUNT=1
    fi
 
+   if [ "$2" = "comm" ]; then
+      OUTPUTFILE="${BLENDFILE%.blend}_comm"
+   elif [ -n "$STATION" ]; then
+      OUTPUTFILE="${BLENDFILE%.blend}"
+   else
+      if [ -n "$layer" ] && [ "$layer" != 8 ]; then
+         OUTPUTFILE="${BLENDFILE%.blend}_$layer"
+      #elif [ "$layer" == 8 ] && [ "$ENGINES" == "true" ]; then
+      elif [ "$2" = "engine" ]; then
+         OUTPUTFILE="${BLENDFILE%.blend}_engine"
+      else
+         OUTPUTFILE="${BLENDFILE%.blend}"
+      fi
+   fi
+   OUTPUTFILE="$RENDEROUT/$OUTPUTFILE.png"
+   if [[ -f "$OUTPUTFILE" ]]; then
+      echo "Skipping ${BLENDFILE%.blend}! (Render $COUNT of $JOBS)"
+      popd > /dev/null
+      return
+   fi
+
    # echo "$BLENDER $RENDERPATH/$BLEND -P $PWD/../$REND_SCRIPT -- $REND_PARAMS"
    # Outputs different things depending on layers.
+   echo "Rendering $OUTPUTFILE ... (Render $COUNT of $JOBS)"
    if [ -n "$layer" ] && [ "$layer" != 8 ]; then
-      echo -en "\E[32mRendering ${BLEND%.blend}_$layer ... "; tput sgr0
-      echo -n "(Render $COUNT of $JOBS)"
+      #echo -en "\E[32mRendering ${BLEND%.blend}_$layer ... "; tput sgr0
+      #echo -n "(Render $COUNT of $JOBS)"
       COUNT=$(expr $COUNT + 1)
-      debuglevel $BLENDER "$RENDERPATH/$BLEND" -P "$PWD/../$REND_SCRIPT" -- $REND_PARAMS
+      debuglevel $BLENDER "$BLENDPATH" -P "$REND_SCRIPT" -- $REND_PARAMS
    elif [ "$layer" == 8 ]; then
-      echo -en "\E[32mRendering ${BLEND%.blend}_engine ... "; tput sgr0
-      echo -n "(Render $COUNT of $JOBS)"
+      #echo -en "\E[32mRendering ${BLEND%.blend}_engine ... "; tput sgr0
+      #echo -n "(Render $COUNT of $JOBS)"
       COUNT=$(expr $COUNT + 1)
-      debuglevel $BLENDER "$RENDERPATH/$BLEND" -P "$PWD/../$REND_SCRIPT" -- $REND_PARAMS
+      debuglevel $BLENDER "$BLENDPATH" -P "$REND_SCRIPT" -- $REND_PARAMS
    else
-      echo -en "\E[32mRendering ${BLEND%.blend} ... "; tput sgr0
-      echo -n "(Render $COUNT of $JOBS)"
+      #echo -en "\E[32mRendering ${BLEND%.blend} ... "; tput sgr0
+      #echo -n "(Render $COUNT of $JOBS)"
       COUNT=$(expr $COUNT + 1)
-      debuglevel $BLENDER "$RENDERPATH/$BLEND" -P "$PWD/../$REND_SCRIPT" -- $REND_PARAMS
+      debuglevel $BLENDER "$BLENDPATH" -P "$REND_SCRIPT" -- $REND_PARAMS
    fi
 
    # Post process
-   if [ "$2" = "comm" ]; then
-      cp "000.png" "../../raw/${BLEND%.blend}_comm.png"
-      echo -e " ... Comm done!"
-   elif [ -n "$STATION" ]; then
-      cp "000.png" "../../raw/${BLEND%.blend}.png"
-      echo -e " ... Station done!"
+   if [[ "$2" = "comm" ]]; then
+      cp "000.png" "$OUTPUTFILE"
+      #echo -e " ... Comm done!"
+      echo " ... Comm done!"
+   elif [[ -n "$STATION" ]]; then
+      cp "000.png" "$OUTPUTFILE"
+      #echo -e " ... Station done!"
+      echo " ... Station done!"
    else
       # Make sprite
-      $MKSPR $SPRITES
-      if [ -n "$layer" ] && [ "$layer" != 8 ]; then
-         cp "sprite.png"  "../../raw/${BLEND%.blend}_$layer.png"
-      elif [ "$layer" == 8 ] && [ "$ENGINES" == "true" ]; then
-         cp "sprite.png"  "../../raw/${BLEND%.blend}_engine.png"
-      else
-         cp "sprite.png"  "../../raw/${BLEND%.blend}.png"
-      fi
+      make -s -C "$(dirname $MKSPR)" mkspr && $MKSPR $SPRITES
+      cp "sprite.png"  "$OUTPUTFILE"
       echo " ... Done!"
    fi
 
    # Clean up
-   rm *.png
-   cd ..
+   rm -f *.png
+   popd > /dev/null
 }
 
 finish()
 {
    # Runs at the end, showing duration.
    if [ -n "$JOBS" ]; then
-      echo -e "\E[31m- - - - - - - -"; tput sgr0
-      echo -e "Render Finished: \t`date +%T`\nElapsed Time: \t\t$(converttime)"
+      #echo -e "\E[31m- - - - - - - -"; tput sgr0
+      #echo -e "Render Finished: \t`date +%T`\nElapsed Time: \t\t$(converttime)"
+      echo "- - - - - - -"
+      echo "Render Finished: \t`date +%T`\nElapsed Time: \t\t$(converttime)"
    fi
 }
 
-cd ships
 # Parameters - only do those
 if [ $# -gt 0 ]; then
    if [ "$1" = "comm" ]; then
@@ -325,9 +355,11 @@ if [ $# -gt 0 ]; then
 
 # No parameters, do them all
 else
-   for BLEND in *.blend; do
-      render "$BLEND"
-      render "$BLEND" "comm"
+   #DEBUG="true"
+   for MODEL in ships/*.blend; do
+      JOBS=`find $SHIPPATH -maxdepth 1 -name "*.blend" | wc -l`
+      render "$MODEL"
+      render "$MODEL" "comm"
+      render "$MODEL" "engine"
    done
 fi
-cd ..

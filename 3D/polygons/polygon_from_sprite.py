@@ -480,24 +480,21 @@ def generateXML(polygon,adress):
     myfile.close()
 
 # Generates polygon for all outfits
-def polygonify_all_outfits(pngPath, polyPath, overwrite):
+def polygonify_all_outfits(gfxPath, polyPath, overwrite):
     
     # Default parameters
     default_maxNmin = (2,4)
     
     # First define the parameters for special files
     maxNmin = {
-               "ripperM.png" : (3,6)
+               "ripperM" : (3,6)
               }
     
-    for fileName in os.listdir(pngPath):
-        if (fileName.endswith(".png") and not fileName.endswith("-end.png")) \
+    for fileName in os.listdir(gfxPath):
+        if (fileName.endswith((".png", ".webp")) and not fileName.endswith(("-end.png", "-end.webp"))) \
            and not fileName.startswith("beam_"):
             
-            # Remove the .png
-            name = os.path.splitext(fileName)[0]
-            
-            polyAdress = (polyPath+name+".xml")
+            polyAdress = (polyPath+fileName+".xml")
             
             # Test if the file already exists
             if ( not overwrite and os.path.exists(polyAdress) ) :
@@ -516,7 +513,7 @@ def polygonify_all_outfits(pngPath, polyPath, overwrite):
                 lmin = mNm[0]
                 lmax = mNm[1]
             
-            pngAdress  = (pngPath+fileName)
+            pngAdress  = (gfxPath+fileName)
             
             print("Generation of " + polyAdress)
             
@@ -526,58 +523,68 @@ def polygonify_all_outfits(pngPath, polyPath, overwrite):
             generateXML(polygon,polyAdress)
             
 # Generates polygon for all ships
-def polygonify_all_ships(pngPath, polyPath, overwrite):
+def polygonify_all_ships(gfxPath, polyPath, overwrite):
     
     # Default parameters
     default_maxNmin = (8,8,150,3,6)
     
     # First define the parameters for special files
     maxNmin = {
-               "apprehension.png" : (12,12,150,3,6),
-               "archimedes.png" : (12,12,150,3,6),
-               "arx.png" : (12,12,150,3,6),
-               "certitude.png" : (12,12,150,3,6),
-               "demon.png" : (12,12,150,3,6),
-               "diablo.png" : (12,12,1,4,8),
-               "divinity.png" : (12,12,150,3,6),
-               "dogma.png" : (12,12,150,3,6),
-               "drone_heavy.png" : (10,10,150,3,6),
-               "goddard.png" : (12,12,150,3,6),
-               "goddard_dvaered.png" : (12,12,150,3,6),
-               "hawking.png" : (12,12,150,3,6),
-               "hawking_empire.png" : (12,12,150,3,6),
-               "hephaestus.png" : (12,12,1,4,8),
-               "imp.png" : (12,12,150,3,6),
-               "ira.png" : (12,12,150,3,6),
-               "kahan.png" : (10,10,150,3,6),
-               "kestrel.png" : (10,10,150,3,6),
-               "kestrel_pirate.png" : (10,10,150,3,6),
-               "mephisto.png" : (12,12,150,3,6),
-               "mule.png" : (10,10,150,3,6),
-               "nyx.png" : (10,10,150,3,6),
-               "pacifier.png" : (10,10,150,3,6),
-               "pacifier_empire.png" : (10,10,150,3,6),
-               "peacemaker.png" : (12,12,150,3,6),
-               "phalanx.png" : (10,10,150,3,6),
-               "phalanx_pirate.png" : (10,10,150,3,6),
-               "phalanx_dvaered.png" : (10,10,150,3,6),
-               "preacher.png" : (10,10,150,3,6),
-               "prototype.png" : (12,12,150,3,6),
-               "quicksilver.png" : (10,10,150,3,6),
-               "rhino.png" : (10,10,150,3,6),
-               "rhino_pirate.png" : (10,10,150,3,6),
-               "sting.png" : (10,10,1,3,6),
-               "taciturnity.png" : (10,10,150,3,6),
-               "vigilance.png" : (10,10,150,3,6),
-               "vigilance_dvaered.png" : (10,10,150,3,6),
-               "vox.png" : (12,12,150,4,8),
-               "watson.png" : (12,12,150,3,6),
+               "apprehension" : (12,12,150,3,6),
+               "archimedes" : (12,12,150,3,6),
+               "arx" : (12,12,150,3,6),
+               "certitude" : (12,12,150,3,6),
+               "demon" : (12,12,150,3,6),
+               "diablo" : (12,12,1,4,8),
+               "divinity" : (12,12,150,3,6),
+               "dogma" : (12,12,150,3,6),
+               "drone_heavy" : (10,10,150,3,6),
+               "goddard" : (12,12,150,3,6),
+               "goddard_dvaered" : (12,12,150,3,6),
+               "hawking" : (12,12,150,3,6),
+               "hawking_empire" : (12,12,150,3,6),
+               "hephaestus" : (12,12,1,4,8),
+               "imp" : (12,12,150,3,6),
+               "ira" : (12,12,150,3,6),
+               "kahan" : (10,10,150,3,6),
+               "kestrel" : (10,10,150,3,6),
+               "kestrel_pirate" : (10,10,150,3,6),
+               "mephisto" : (12,12,150,3,6),
+               "mule" : (10,10,150,3,6),
+               "nyx" : (10,10,150,3,6),
+               "pacifier" : (10,10,150,3,6),
+               "pacifier_empire" : (10,10,150,3,6),
+               "peacemaker" : (12,12,150,3,6),
+               "phalanx" : (10,10,150,3,6),
+               "phalanx_pirate" : (10,10,150,3,6),
+               "phalanx_dvaered" : (10,10,150,3,6),
+               "preacher" : (10,10,150,3,6),
+               "prototype" : (12,12,150,3,6),
+               "quicksilver" : (10,10,150,3,6),
+               "rhino" : (10,10,150,3,6),
+               "rhino_pirate" : (10,10,150,3,6),
+               "sting" : (10,10,1,3,6),
+               "taciturnity" : (10,10,150,3,6),
+               "vigilance" : (10,10,150,3,6),
+               "vigilance_dvaered" : (10,10,150,3,6),
+               "vox" : (12,12,150,4,8),
+               "watson" : (12,12,150,3,6),
               }
-    
-    for root, directories, filenames in os.walk(pngPath):
+
+    def goodfile( filename ):
+        if (fileName.endswith(".png") and \
+            not fileName.endswith("_comm.png")) \
+            and not fileName.endswith("_engine.png"):
+           return True
+        if (fileName.endswith(".webp") and \
+            not fileName.endswith("_comm.webp")) \
+            and not fileName.endswith("_engine.webp"):
+           return True
+        return False
+
+    for root, directories, filenames in os.walk(gfxPath):
         for fileName in filenames:
-            if (fileName.endswith(".png") and not fileName.endswith("_comm.png")) \
-               and not fileName.endswith("_engine.png"):
+            if goodfile( fileName ):
                 
                 # Remove the .png
                 name = os.path.splitext(fileName)[0]
@@ -594,8 +601,14 @@ def polygonify_all_ships(pngPath, polyPath, overwrite):
                 ceil = default_maxNmin[2]
                 lmin = default_maxNmin[3]
                 lmax = default_maxNmin[4]
-                if fileName in maxNmin:
-                    mNm = maxNmin[fileName]
+
+                basefileName = fileName
+                if basefileName[-4:] == '.png':
+                    basefileName = basefileName[:-4]
+                if basefileName[-5:] == '.webp':
+                    basefileName = basefileName[:-5]
+                if basefileName in maxNmin:
+                    mNm = maxNmin[basefileName]
                     sx   = mNm[0]
                     sy   = mNm[1]
                     ceil = mNm[2]                    
@@ -615,8 +628,9 @@ def polygonify_all_ships(pngPath, polyPath, overwrite):
 
 if __name__ == "__main__":
         
-    polygonify_all_outfits( '../../../naev/dat/gfx/outfit/space/', '../../../naev/dat/gfx/outfit/space_polygon/', 0 )
-    polygonify_all_ships( '../../../naev/dat/gfx/ship/', '../../../naev/dat/gfx/ship_polygon/', 0 )
+    #polygonify_all_outfits( '../../../naev/dat/gfx/outfit/space/', '../../../naev/dat/gfx/outfit/space_polygon/', 0 )
+    #polygonify_all_ships( '../../../naev/dat/gfx/ship/', '../../../naev/dat/gfx/ship_polygon/', 0 )
+    polygonify_all_ships( '../../../naev-artprod/gfx/ship/', '../../../naev-artprod/gfx/ship_polygon/', 0 )
     
     # Use the above stuff to generate only one ship or outfit polygon :
     
