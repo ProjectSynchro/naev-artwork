@@ -36,10 +36,14 @@ fi
 
 if ! [ -x "$(command -v inkscape)" ]; then
     echo "You don't have Inkscape installed!, install it for your distro."
+    echo "Failed to generate $OUTPUTDIR"
+    exit 1
 else
-    installedver="$(inkscape --version)"
     targetVer="1.0.0"
-    if [ "$(printf '%s\n' "$targetVer" "$installedver" | sort -V | head -n1)" = "$targetVer" ]; then
+    installedVer="$(inkscape --version)"
+    parsedVer="$(echo $installedVer | egrep -o '[0-9].*.[0-9] ')"
+
+    if [ "$(printf '%s\n' "$parsedVer" "$targetVer" | sort -V | head -n1)" = "$targetVer" ]; then
         if [[ -z "$EXPORTWIDTH" || -z "$EXPORTHEIGHT" ]]; then
             inkscape "${SVGFILE}" --export-filename "${OUTPUTDIR}"
         else
